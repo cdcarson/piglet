@@ -35,7 +35,10 @@ nbproject
 .idea
 node_modules
 dist
-/example-project/assets/bootstrap/
 
-# MM Bootstrap Manager
-/data/data.json
+# Piglet
+/data/
+/example-project/less/bootstrap.less
+/example-project/less/responsive.less
+/example-project/less/variables.less
+/example-project/assets/bootstrap/
