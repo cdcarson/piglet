@@ -9,9 +9,11 @@ exports = module.exports = new Piglet;
 exports.Piglet = Piglet;
 
 function Piglet() {
+	this.quit_str = '-q';
 	var pkg = require('../package');
 	this.program = require('commander').version(pkg.version);
 	this.program.parse(process.argv);
+
 }
 
 Piglet.prototype.setup = function(){
@@ -25,38 +27,11 @@ Piglet.prototype.setup = function(){
 		{
 			prompt: 'What\'s the path to your Twitter Bootstrap directory?',
 			callback: function(dir){
-
-				if (! that.is_dir(dir)){
-					that.squeal([
-						'That\'s not a directory!',
-						'You said: ' + dir
-					]);
+				that.check_for_quit(dir);
+				var errors = [];
+				if (! that.check_bootstrap_path(dir, errors)){
+					that.squeal(errors);
 					prompt(0);
-					return;
-				}
-				var missing = [];
-				var req = require('./required_bootstrap_paths.json');
-				for (var n = 0; n < req.length; n++){
-					var parts = req[n];
-					var p = dir;
-					while(req.length > 0){
-						p = path.join(p, req.shift());
-					}
-					if (! fs.existsSync(p)){
-						missing.push(p);
-					}
-
-				}
-				if (missing.length > 0){
-					missing.unshift(
-						[
-							'Some files went missing from Bootstrap! Are you sure you got it from GitHub?',
-							'The missing files are: '
-						]
-					);
-					that.squeal(missing);
-					prompt(0);
-					return;
 				}
 				env = path.resolve(dir);
 			}
@@ -66,7 +41,7 @@ Piglet.prototype.setup = function(){
 		[
 			'-- Hello from Piglet --',
 			'Let me set your sty up right. I need to ask you a few questions.',
-			'Answer "-q" at any time to cancel out.'
+			'Answer "' + this.quit_str + '" at any time to cancel out.'
 		]
 	);
 
@@ -98,6 +73,47 @@ Piglet.prototype.is_dir = function(p){
 	var stats = fs.statSync(p);
 	if (! stats.isDirectory()) return false;
 	return true;
+};
+
+Piglet.prototype.check_bootstrap_path = function(dir, errors){
+	if (! this.is_dir(dir)){
+		errors.push([
+			'The bootstrap path is not a directory!',
+			'You said: ' + dir
+		]);
+		return false;
+	}
+	var missing = [];
+	var req = require('./required_bootstrap_paths.json');
+	for (var n = 0; n < req.length; n++){
+		var parts = req[n];
+		var p = dir;
+		while(req.length > 0){
+			p = path.join(p, req.shift());
+		}
+		if (! fs.existsSync(p)){
+			missing.push(p);
+		}
+
+	}
+	if (missing.length > 0){
+		missing.unshift(
+			[
+				'Some files went missing from Bootstrap! Are you sure you got it from GitHub?',
+				'The missing files are: '
+			]
+		);
+		errors.push(missing);
+		return false;
+	}
+	return true;
+};
+
+Piglet.prototype.check_for_quit = function(str){
+	if (this.quit_str.toLowerCase() == str.toLowerCase()){
+		this.say('Oink. Good-bye.');
+		process.exit();
+	}
 };
 
 function PigletEnvironment(init){
