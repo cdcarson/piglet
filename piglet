@@ -1,2 +1,2 @@
 #!/usr/local/Cellar/node/0.10.12/bin/node
-require ('./inc/piglet');
+require ('./index.js');
