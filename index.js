@@ -1,30 +1,80 @@
+/**
+ *
+ * @type {*}
+ */
 var
 	path = require('path')
 	, program = require('commander')
 	,fs = require('fs')
 	,os = require('os')
+	,exec = require('child_process').exec
 	, _ = require('underscore');
 
 
 function Piglet(){
 
+
 	var that = this;
 
-	program.version(require('./package.json').version)
+	program.version(require('./package.json').version);
 
 	program
-		.command('init <id> <bootstrap_path> <project_less_path> <project_target_path>')
+		.option('-n, --noWarning', 'no warning prompt')
+		.option('-s, --showDetail', 'show details')
+		.option('-v, --validateProjects', 'validate projects')
+		.option('-a, --all', 'remove all less src.less:dst.css pairs from a project');
+
+
+
+	program
+		.command('add <id> <bootstrap_path> <project_less_path> <project_target_path>')
 		.description('initialize a project')
 		.action(function(id, bootstrap_path, project_less_path, project_target_path){
-			that.cmd_init(id, bootstrap_path, project_less_path, project_target_path);
+			that.cmd_add(id, bootstrap_path, project_less_path, project_target_path);
 		});
 
+	program
+		.command('rm <id>')
+		.description('delete a project')
+		.action(function(id){
+			that.cmd_rm(id);
+		})
+		.option('-n, --noWarning', 'no warning prompt');
+
+	program
+		.command('ls')
+		.description('list projects')
+		.action(function(){
+			that.cmd_ls();
+		})
+		.option('-s, --showDetail', 'show details')
+		.option('-v, --validateProjects', 'validate projects');
+
+	program
+		.command('pair <id> <pair>')
+		.description('add a less src.less:dst.css pair to a project')
+		.action(function(id, src_dst){
+			that.cmd_pair(id, src_dst);
+		});
+	program
+		.command('pairrm <id> <src_dst>')
+		.description('remove a less src.less:dst.css pair from a project')
+		.action(function(id, src_dst){
+			that.cmd_pairrm(id, src_dst);
+		})
+		.option('-a, --all', 'remove all less src.less:dst.css pairs from a project');
+
 	program.parse(process.argv);
+
+	console.log(program);
+
 
 
 }
 
-Piglet.prototype.cmd_init = function(id, bootstrap_path, project_less_path, project_target_path){
+/***  Commands **/
+
+Piglet.prototype.cmd_add = function(id, bootstrap_path, project_less_path, project_target_path){
 	var errors = [];
 	var valid = true;
 
@@ -64,10 +114,163 @@ Piglet.prototype.cmd_init = function(id, bootstrap_path, project_less_path, proj
 	project.bootstrap_path = bootstrap_path;
 	project.project_less_path = project_less_path;
 	project.project_target_path = project_target_path;
+	project.created_at = new Date();
 
-	this.writeJSON(path.join('./projects', id + '.json'), project);
+	var queue = [];
+	var cmd;
+	var that = this;
+
+	var less = this.readJSON('./const/project_less_files.json');
+	cmd = 'cp ';
+	_.each(less, function(val){
+		cmd += path.join(bootstrap_path, 'less', val) + ' ';
+	});
+	cmd += project_less_path;
+	queue.push(cmd);
+
+	this.exec_queue(queue, function(){
+		that.writeJSON(that.get_project_path(id), project);
+		that.say(
+			[
+				'The following project has been added.'
+				, that.stringify(id, project)
+			]
+		);
+	});
+
+
 
 };
+
+
+Piglet.prototype.cmd_rm = function(id){
+	var errors = [];
+
+	//Validate id...
+	var project = this.validate_id(id, errors, false);
+	if (! project){
+		this.squeal('No project found with an id \'' + id + '\'');
+		process.exit();
+	}
+
+	var that = this;
+	var cb = function(){
+		that.unlink(that.get_project_path(id));
+		that.say(
+			[
+				'The following project has been deleted.'
+				, that.stringify(id, project)
+			]
+		);
+		process.exit(0);
+	};
+
+	if (program.noWarning){
+		cb();
+	} else {
+		program.confirm(
+			'Are you sure you want to delete the project ' + id  + '? ',
+			function(ok){
+				if (ok) {
+					cb();
+				} else{
+					that.say('Delete cancelled.')
+				}
+				process.exit(0);
+			}
+		);
+	}
+
+};
+Piglet.prototype.cmd_ls = function(){
+	var files = this.read_dir('./projects');
+	var pct = 0;
+	var out = [];
+	if (program.validateProjects || program.showDetails){
+
+		_.each(files, function(val){
+			if ('.json' == path.extname(val)){
+				pct++;
+				var project = this.readJSON(path.join('./projects', val));
+				out.push('Project: ' + project.id);
+				if (program.showDetail){
+					out.push(this.stringify(project.id, project));
+				}
+				if (program.validateProjects){
+					var errors = [];
+					var valid = true;
+					if (! this.validate_bootstrap_path(project.bootstrap_path, errors)){
+						valid = false;
+					}
+					if (! this.validate_project_less_path(project.project_less_path, errors, false)){
+						valid = false;
+					}
+					if (! this.validate_project_target_path(project.project_target_path, errors, false)){
+						valid = false;
+					}
+					if (errors.length > 0){
+						out.push('Invalid project. Errors: ');
+						out.concat(errors)
+					} else {
+						out.push('Everything is valid.');
+					}
+					out.push('');
+				}
+			}
+		}, this);
+	} else {
+
+		_.each(files, function(val){
+			if ('.json' == path.extname(val)){
+				pct++;
+				out.push(path.basename(val, '.json'))
+			}
+		}, this);
+	}
+	out.unshift(' ');
+	out.unshift(pct.toString() + ' project(s)');
+	this.say(out);
+
+
+};
+Piglet.prototype.cmd_pair = function(id, pair){
+	var project = this.validate_id(id, errors, false);
+	if (! project){
+		this.squeal('No project found with an id \'' + id + '\'');
+		process.exit();
+	}
+	pair = this.validate_pair(pair, errors);
+	if (! pair){
+		this.squeal(errors);
+		process.exit();
+	}
+	if (_.indexOf(project.pairs, pair) > -1){
+		errors.push(
+			pair + 'already exists in ' + id + '.'
+		);
+		this.squeal(errors);
+		process.exit();
+	}
+	project.pairs.push(pair);
+	this.say(
+		[
+			'Pair added to project ' + id
+		]
+
+	)
+
+};
+Piglet.prototype.cmd_alsorm = function(id, src_dst){
+	var project = this.validate_id(id, errors, false);
+	if (! project){
+		this.squeal('No project found with an id \'' + id + '\'');
+		process.exit();
+	}
+};
+
+
+/*** end Commands **/
+
 
 /** Validation ***/
 
@@ -80,7 +283,7 @@ Piglet.prototype.cmd_init = function(id, bootstrap_path, project_less_path, proj
  */
 Piglet.prototype.validate_id = function(id, errors, is_new){
 	var project;
-	if (! /\^\w+$/.test(id)){
+	if (! /^\w+$/.test(id)){
 		errors.push('Invalid id \'' + id + '\'. Please use only word characters.');
 		return false;
 	}
@@ -106,7 +309,7 @@ Piglet.prototype.validate_id = function(id, errors, is_new){
 			errors.push('No project with the id \'' + id + '\' exists.');
 			return false;
 		}
-		return this.readJSON(path.join('./', 'projects', id + '.json'));
+		return this.readJSON(this.get_project_path(id));
 	}
 };
 
@@ -165,10 +368,10 @@ Piglet.prototype.validate_bootstrap_path = function(p, errors){
  */
 Piglet.prototype.validate_project_less_path = function(p, errors, is_new_project){
 	//Validate project_less_path...
-	var project_less_path = this.real_path(project_less_path);
+	var project_less_path = this.real_path(p);
 	if (! project_less_path){
 		errors.push('The project_less_path does not seem to exist.',
-			'Path: ' + project_less_path);
+			'Path: ' + p);
 		return false;
 	}
 	if (! this.is_dir(project_less_path)){
@@ -176,7 +379,7 @@ Piglet.prototype.validate_project_less_path = function(p, errors, is_new_project
 			'Path: ' + project_less_path);
 		return false;
 	}
-	var files = this.readJSON('./config/project_less_files.json');
+	var files = this.readJSON('./const/project_less_files.json');
 	var existing = [];
 	var missing = [];
 	_.each(files, function(val){
@@ -248,10 +451,55 @@ Piglet.prototype.validate_project_target_path = function(p, errors, is_new_proje
 	return project_target_path;
 };
 
+Piglet.prototype.validate_pair = function(pair, errors){
+	var valid = true;
+	var split = pair.split(':');
+	if (split.length != 2){
+		errors.push(
+			'The source and destination of the src.less:dst.css pair  ' +
+				'should be separated by a colon.',
+			'Pair: ' + pair
+
+		);
+		return false;
+	}
+	var src = this.real_path(split[0]);
+	if (! src){
+		errors.push(
+			'The source  of the src.less:dst.css pair ' +
+				'does not seem to exist.',
+			'Path: ' + split[0]
+		);
+		valid = false;
+	}
+	var dir = path.dirname(split[1]);
+	var dst = this.real_path(dir);
+	if (! dst){
+		errors.push(
+			'The destination directory of the src.less:dst.css pair ' +
+				'does not seem to exist.',
+			'Path: ' + split[1]
+		);
+		valid = false;
+	}
+
+	if (! valid) return false;
+
+	dst = path.join(dst, path.basename(split[1]));
+	return src + ':' + dst;
+
+
+};
+
+
 /** End Validation ***/
 
 
-/** fs wrappers **/
+/** fs  **/
+
+Piglet.prototype.get_project_path = function(id){
+	return path.join('./', 'projects', id + '.json');
+};
 
 /**
  * Whether a given path (relative or not) exists.
@@ -260,6 +508,8 @@ Piglet.prototype.validate_project_target_path = function(p, errors, is_new_proje
  * @returns bool
  */
 Piglet.prototype.exists = fs.existsSync;
+
+Piglet.prototype.unlink = fs.unlinkSync;
 
 /**
  *
@@ -298,9 +548,7 @@ Piglet.prototype.readJSON = function(p){
 Piglet.prototype.writeJSON = function(p, data){
 	return this.write(p, JSON.stringify(data, null, '    '));
 };
-Piglet.prototype.mkdir = function(p){
-	return fs.mkdirSync(p);
-};
+Piglet.prototype.mkdir = fs.mkdirSync;
 Piglet.prototype.path_join_array = function(a){
 	var p = a.shift();
 	while (a.length > 0){
@@ -310,7 +558,8 @@ Piglet.prototype.path_join_array = function(a){
 	return p;
 };
 
-/** end fs wrappers **/
+
+/** end fs  **/
 
 
 
@@ -335,10 +584,36 @@ Piglet.prototype.squeal = function(err){
 	this.say(err);
 
 };
+Piglet.prototype.stringify = function(label, thing){
+	return label + ' = ' + JSON.stringify(thing, null, '    ')
+};
 
 /** end say/squeal  **/
 
+Piglet.prototype.exec_queue = function(queue, callback, verbose){
+	if (queue.length == 0){
+		callback();
+		return;
+	}
+	var that = this;
+	var cmd = queue.shift();
+	exec(
+		cmd,
+		function (error, stdout, stderr) {
+			if (verbose){
 
+				console.log('exec: ' + cmd);
+				console.log('stdout: ' + stdout);
+				console.log('stderr: ' + stderr);
+			}
+
+			if (error !== null) {
+				console.log('exec error: ' + error);
+			}
+			that.exec_queue(queue, callback);
+		}
+	);
+};
 
 
 exports = module.exports = new Piglet;
