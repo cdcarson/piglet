@@ -1,9 +1,9 @@
 {
 	  "id": ""
 	, "bootstrap_path": ""
-	, "project_less_path": ""
-	, "project_target_path": ""
-	, "pairs": []
+	, "less_path": ""
+	, "target_path": ""
+	, "src_dst": []
 	, "created_at": null
 	, "compiled_at": null
 }

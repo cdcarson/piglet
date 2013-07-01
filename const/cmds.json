@@ -1,0 +1,62 @@
+{
+
+	"compile":{
+		"usage": "Usage: piglet compile <id>"
+		, "demand": 1
+		, "describe": "Compile a Piglet project."
+		, "options":{}
+	}
+	,
+	"add":{
+		"usage": "Usage: piglet add <id> <bootstrap_path> <less_path> <target_path> [src_dst...]"
+		, "demand": 4
+		, "describe": "Add a Piglet project."
+		, "options":{}
+
+
+	}
+	, "rm":{
+		"usage": "Usage: piglet rm [--flags] <id>"
+		, "demand": 1
+		, "describe": "Remove a Piglet project."
+		, "options":{
+			"w": {
+				"alias": "withoutWarningPrompt",
+				"describe": "delete the project without having to say yes or no",
+				"boolean": true,
+				"default": false
+			}
+		}
+	}
+	, "ls":{
+		"usage": "Usage: piglet [--flags] ls"
+		, "describe": "List Piglet projects."
+		, "options":{
+			"d": {
+				"alias": "details",
+				"describe": "show intimate details (properties and validation) of each project",
+				"boolean": true,
+				"default": false
+			}
+		}
+	}
+	, "show":{
+		"usage": "Usage: piglet show <id>"
+		, "demand": 1
+		, "describe": "Show properties and validate a Piglet project."
+		, "options":{}
+	}
+	, "oink":{
+		"usage": "Usage: piglet oink"
+		, "describe": "Oink."
+		, "options":{
+			"l":{
+				"alias": "loud"
+				,"required": false
+				,"describe": "The path to where your project's less files reside."
+			}
+		}
+	}
+
+
+}
