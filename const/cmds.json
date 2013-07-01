@@ -14,6 +14,34 @@
 		, "options":{}
 
 
+	},
+	"set":{
+		"usage": "Usage: piglet set <id> <--setting> <value>"
+		, "demand": 2
+		, "describe": "Change a Piglet project setting."
+		, "options":{
+			"b":{
+				"alias": "bootstrap_path",
+				"describe": "set the path to Bootstrap to <value>",
+				"boolean": true,
+				"default": false
+			},
+			"l":{
+				"alias": "less_path",
+				"describe": "set the less path to <value>",
+				"boolean": true,
+				"default": false
+			},
+			"t":{
+				"alias": "target_path",
+				"describe": "set the target path to <value>",
+				"boolean": true,
+				"default": false
+			}
+
+		}
+
+
 	}
 	, "rm":{
 		"usage": "Usage: piglet rm [--flags] <id>"

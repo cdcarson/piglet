@@ -91,8 +91,12 @@ Piglet.prototype.cmd = function(c, args){
 		case 'show':
 			this.cmd_show(args);
 			break;
+		case 'set':
+			this.cmd_set(args);
+			break;
 	}
 };
+
 
 
 Piglet.prototype.cmd_add = function(args){
@@ -132,6 +136,48 @@ Piglet.prototype.cmd_add = function(args){
 
 };
 
+Piglet.prototype.cmd_set = function(args){
+	var errors = [];
+	if (! this.validate_id(args.id, errors, false)){
+		this.squeal(errors);
+		process.exit();
+	}
+	var valid = true;
+	var project = this.read_project(args.id);
+	if (args.bootstrap_path) {
+		project.bootstrap_path = args.value;
+		project.bootstrap_path = this.validate_bootstrap_path(project.bootstrap_path, errors, false);
+		if (! project.bootstrap_path) valid = false;
+	} else {
+		if (args.less_path) {
+			project.less_path = args.value;
+			project.less_path = this.validate_less_path(project.less_path, errors, false);
+			if (! project.less_path) valid = false;
+		} else {
+			if (args.target_path) {
+				project.target_path = args.value;
+				project.target_path = this.validate_target_path(project.target_path, errors, false);
+				if (! project.target_path) valid = false;
+			} else {
+				errors.push('Enter a setting flag.');
+				valid = false;
+			}
+		}
+	}
+	if (valid){
+		this.write_project(project);
+		this.say('Setting changed.');
+		process.exit();
+	} else {
+		this.squeal(errors);
+		process.exit();
+	}
+
+
+
+
+
+};
 
 Piglet.prototype.cmd_rm = function(args){
 
