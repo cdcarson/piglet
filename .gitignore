@@ -37,7 +37,7 @@ node_modules
 dist
 
 # Piglet
-/data/
+/projects/*.json
 /example-project/less/bootstrap.less
 /example-project/less/responsive.less
 /example-project/less/variables.less
