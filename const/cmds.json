@@ -16,10 +16,17 @@
 
 	},
 	"set":{
-		"usage": "Usage: piglet set <id> <property> [value]"
-		, "demand": 2
+		"usage": "Usage: piglet set <id> [--flags] [property] [value]"
+		, "demand": 1
 		, "describe": "Change a Piglet project setting."
-		, "options":{}
+		, "options":{
+			"e": {
+				"alias": "empty",
+				"describe": "clear a property",
+				"boolean": true,
+				"default": false
+			}
+		}
 	}
 
 

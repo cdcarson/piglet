@@ -122,7 +122,7 @@ Piglet.prototype.cmd_add = function(args){
 	this.say(
 		[
 			'The project ' + project.id + ' has been added.'
-			, that.stringify(project.id, project)
+			, this.stringify(project.id, project)
 			, 'Use piglet set <id> <setting> [value] to set project properties.'
 		]
 	);
@@ -150,53 +150,113 @@ Piglet.prototype.cmd_set = function(args){
 
 	var msg = '';
 	var project = this.read_project(args.id);
+
 	var property =  args.property;
 	var value = args.value;
-	var that = this;
-	switch (property){
+	var p;
+	var parts = property.split('.');
+	switch (parts[0]){
 		case 'id':
-			this.squeal('Please don\'t try to set the id.');
-			process.exit();
+			errors.push('Please don\'t try to set the id.');
 			break;
-		default:
-			var parts = property.split('.');
-			if ('pairs' == parts[0]){
-				var pair_id = parts[1];
-				var exists = (pair_id && project.parts[parts[1]]);
-				if (! exists){
-					project.pairs[pair_id] = this.read_constant('pair');
-					project.pairs[pair_id][id] = pair_id;
-					msg = 'The source.less > destination.css pair ' + pair_id  + ' added to project '. project.id + '.';
-				} else{
-					if (! args.value && pairs.length == 2){
-						delete project.pairs[pair_id];
-						msg = 'The source.less > destination.css pair ' + pair_id  + ' removed from project '. project.id + '.';
-					}
-				}
-			}
-			if (!_.isString(project[property])){
-				errors.push('You can\'t set ' + property + ' to a string.' );
-			} else {
-				if (! args.value){
-					args.value = "";
-				}
-				if (args.value.length > 0){
-					var s = this.real_path(args.value);
-					if (s){
-						project[property] = s;
-					} else {
-						project[property] = args.value;
-					}
-				} else {
-					project[property] = args.value;
-				}
+		case 'created_at':
+		case 'compiled_at':
+			errors.push('Please don\'t try to set a date.');
+			break;
+		case 'bootstrap_path':
+		case 'less_path':
+		case 'target_path':
 
-				msg = property + ' set to ' + project[property] + ' in project '. project.id + '.';
+			if (args.empty){
+				project[parts[0]] = '';
+			} else {
+				p = this.real_path(value);
+				if (! p){
+					errors.push('That doesn\'t seem to be a valid path.', 'Path: ' + value);
+				} else {
+					project[parts[0]] = p;
+					msg = pair_id + '.' + parts[2] + ' set to ' + p;
+				}
 			}
+			break;
+
+		case 'pairs':
+			switch (parts.length){
+				case 1:
+					if (args.empty){
+						project.pairs = {};
+						msg = 'All source.less > destination.css pairs removed from project '+ project.id + '.';
+					} else {
+						errors.push('Cannot set pairs to nothing. To remove all pairs use piglet <id> set --empty pairs.');
+					}
+					break;
+				default:
+					var pair_id = parts[1];
+					var exists = (pair_id && project.pairs[pair_id]);
+					if (exists){
+						switch (parts.length){
+							case 2:
+								if (args.empty){
+									delete project.pairs[pair_id];
+									msg = 'The source.less > destination.css pair ' + pair_id  + ' removed from project ' + project.id + '.';
+								} else {
+									errors.push('Cannot set pairs.' + pair_id + ' to nothing. To remove this pair use piglet <id> set --empty pairs.' + pair_id);
+								}
+								break;
+
+							case 3:
+								switch (parts[2]){
+									case 'id':
+										errors.push('Please don\'t try to set the id.');
+										break;
+									case 'src':
+									case 'dst':
+										if (args.clear){
+											project.pairs[pair_id][parts[2]] = '';
+										} else {
+											p = this.real_path(value);
+											if (! p){
+												errors.push('That doesn\'t seem to be a valid path.', 'Path: ' + value);
+											} else {
+												project.pairs[pair_id][parts[2]] = p;
+												msg = pair_id + '.' + parts[2] + ' set to ' + value;
+											}
+										}
+										break;
+									default:
+										errors.push('Cannot set an unknown property.');
+										break;
+								}
+								break;
+						}
+
+
+					} else {
+						switch (parts.length){
+							case 2:
+								project.pairs[pair_id] = this.read_constant('pair');
+								project.pairs[pair_id]['id'] = pair_id;
+								msg = 'The source.less > destination.css pair ' + pair_id  + ' added to project ' + project.id + '.';
+								break;
+							default:
+								errors.push('Cannot set ' + property + ' because the source.less > destination.css pair ' + pair_id + ' does not yet exist.');
+								break;
+						}
+					}
+					break;
+
+
+			}
+			break;
+
+
+		default:
+
+			errors.push('Cannot set an unknown property.');
 			break;
 	}
 	if ('less_path' == property){
-		if (this.is_dir(project.less_path)){
+		if (errors.length == 0 && this.is_dir(project.less_path)){
 			var queue = [];
 			var less = this.read_constant('project_less_files');
 
@@ -208,14 +268,10 @@ Piglet.prototype.cmd_set = function(args){
 					)
 				}
 
-			});
+			}, this);
 			if (queue.length > 0) {
-				this.exec_queue(queue, function(){});
+				this.exec_queue(queue, function(){}, true);
 			}
-
-
-
-
 		}
 
 	}
@@ -223,14 +279,14 @@ Piglet.prototype.cmd_set = function(args){
 		this.squeal(errors);
 
 	} else {
+
 		this.write_project(project);
-		this.say(msg);
-
+		this.say(
+			[
+				msg, this.stringify(project.id, project)
+			]
+		);
 	}
-
-
-
-
 
 };
 
@@ -275,10 +331,10 @@ Piglet.prototype.cmd_ls = function(args){
 	var ids = [];
 	_.each(files, function(val, i){
 		if ('.json' == path.extname(val)){
-			ids[i] = path.basename(val, '.json');
+			ids.push(path.basename(val, '.json'));
 		}
 	});
-	var header = ids.length.toString() + ' project';
+	var header = ids.length + ' project';
 	header += 1 == ids.length ? '' : 's';
 	header = [header, '--------------------'];
 	if (! args.details){
