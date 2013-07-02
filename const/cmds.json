@@ -8,48 +8,21 @@
 	}
 	,
 	"add":{
-		"usage": "Usage: piglet add <id> <bootstrap_path> <less_path> <target_path> [src_dst...]"
-		, "demand": 4
+		"usage": "Usage: piglet add <id>"
+		, "demand": 1
 		, "describe": "Add a Piglet project."
 		, "options":{}
 
 
 	},
 	"set":{
-		"usage": "Usage: piglet set <id> <--setting> <value>"
+		"usage": "Usage: piglet set <id> <property> [value]"
 		, "demand": 2
 		, "describe": "Change a Piglet project setting."
-		, "options":{
-			"b":{
-				"alias": "bootstrap_path",
-				"describe": "set the path to Bootstrap to <value>",
-				"boolean": true,
-				"default": false
-			},
-			"l":{
-				"alias": "less_path",
-				"describe": "set the less path to <value>",
-				"boolean": true,
-				"default": false
-			},
-			"t":{
-				"alias": "target_path",
-				"describe": "set the target path to <value>",
-				"boolean": true,
-				"default": false
-			}
-
-		}
-
-
-	}
-	,
-	"pair":{
-		"usage": "Usage: piglet pair <id>"
-		, "demand": 1
-		, "describe": "Change a Piglet project's source.less:destination.css pairs."
 		, "options":{}
 	}
+
+
 	,
 	"watch":{
 		"usage": "Usage: piglet watch <id>"
@@ -58,17 +31,10 @@
 		, "options":{}
 	}
 	, "rm":{
-		"usage": "Usage: piglet rm [--flags] <id>"
+		"usage": "Usage: piglet rm <id>"
 		, "demand": 1
 		, "describe": "Remove a Piglet project."
-		, "options":{
-			"w": {
-				"alias": "withoutWarningPrompt",
-				"describe": "delete the project without having to say yes or no",
-				"boolean": true,
-				"default": false
-			}
-		}
+		, "options":{}
 	}
 	, "ls":{
 		"usage": "Usage: piglet [--flags] ls"
@@ -85,19 +51,13 @@
 	, "show":{
 		"usage": "Usage: piglet show <id>"
 		, "demand": 1
-		, "describe": "Show properties and validate a Piglet project."
+		, "describe": "show properties and validate a Piglet project."
 		, "options":{}
 	}
 	, "oink":{
 		"usage": "Usage: piglet oink"
 		, "describe": "Oink."
-		, "options":{
-			"l":{
-				"alias": "loud"
-				,"required": false
-				,"describe": "The path to where your project's less files reside."
-			}
-		}
+		, "options":{}
 	}
 
 
