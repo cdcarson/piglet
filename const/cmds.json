@@ -43,6 +43,20 @@
 
 
 	}
+	,
+	"pair":{
+		"usage": "Usage: piglet pair <id>"
+		, "demand": 1
+		, "describe": "Change a Piglet project's source.less:destination.css pairs."
+		, "options":{}
+	}
+	,
+	"watch":{
+		"usage": "Usage: piglet watch <id>"
+		, "demand": 1
+		, "describe": "Watch a Piglet project's source files and compile when they change."
+		, "options":{}
+	}
 	, "rm":{
 		"usage": "Usage: piglet rm [--flags] <id>"
 		, "demand": 1

@@ -94,6 +94,12 @@ Piglet.prototype.cmd = function(c, args){
 		case 'set':
 			this.cmd_set(args);
 			break;
+		case 'pair':
+			this.cmd_pair(args);
+			break;
+		case 'watch':
+			this.cmd_watch(args);
+			break;
 	}
 };
 
@@ -134,6 +140,19 @@ Piglet.prototype.cmd_add = function(args){
 
 
 
+};
+
+Piglet.prototype.cmd_watch = function(args){
+	var errors = [];
+	if (! this.validate_id(args.id, errors, false)){
+		this.squeal(errors);
+		process.exit();
+	}
+	var project = this.read_project(args.id);
+};
+
+Piglet.prototype.cmd_pair = function(args){
+	console.log('not yet written');
 };
 
 Piglet.prototype.cmd_set = function(args){
