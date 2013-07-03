@@ -38,10 +38,10 @@ dist
 
 # Piglet
 /projects/*.json
-/example/less/bootstrap.less
-/example/less/responsive.less
-/example/less/variables.less
-/example/less/style.less
+/example/assets/less/bootstrap.less
+/example/assets/less/responsive.less
+/example/assets/less/variables.less
+/example/assets/less/style.less
 /example/assets/bootstrap/
 /example/assets/css/style.css
 /example/assets/css/style.min.css
