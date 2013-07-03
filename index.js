@@ -221,7 +221,7 @@ Piglet.prototype.cmd_set = function(args){
 					errors.push('That doesn\'t seem to be a valid path.', 'Path: ' + value);
 				} else {
 					project[parts[0]] = p;
-					msg = pair_id + '.' + parts[2] + ' set to ' + p;
+					msg =  parts[0] + ' set to ' + p;
 				}
 			}
 			break;
@@ -256,7 +256,6 @@ Piglet.prototype.cmd_set = function(args){
 										errors.push('Please don\'t try to set the id.');
 										break;
 									case 'src':
-									case 'dst':
 										if (args.clear){
 											project.pairs[pair_id][parts[2]] = '';
 										} else {
@@ -265,7 +264,21 @@ Piglet.prototype.cmd_set = function(args){
 												errors.push('That doesn\'t seem to be a valid path.', 'Path: ' + value);
 											} else {
 												project.pairs[pair_id][parts[2]] = p;
-												msg = pair_id + '.' + parts[2] + ' set to ' + value;
+												msg = pair_id + '.' + parts[2] + ' set to ' + p;
+											}
+										}
+										break;
+									case 'dst':
+										if (args.clear){
+											project.pairs[pair_id][parts[2]] = '';
+										} else {
+											p = this.real_path(path.dirname(value));
+											if (! p){
+												errors.push('That doesn\'t seem to be a valid directory path.', 'Path: ' + p);
+											} else {
+												p = path.join(p, path.basename(value));
+												project.pairs[pair_id][parts[2]] = p;
+												msg = pair_id + '.' + parts[2] + ' set to ' + p;
 											}
 										}
 										break;
@@ -316,7 +329,7 @@ Piglet.prototype.cmd_set = function(args){
 
 			}, this);
 			if (queue.length > 0) {
-				this.exec_queue(queue, function(){}, true);
+				this.exec_queue(queue, function(){}, false);
 			}
 		}
 
@@ -753,28 +766,30 @@ Piglet.prototype.validate_target_path = function(p, errors, is_new_project){
 Piglet.prototype.validate_pairs = function(pairs, errors, is_new){
 	var valid = true;
 
-
-
-
 	_.each(pairs, function(o, id){
 		o.src = this.real_path(path.resolve(o.src));
 		if (! o.src){
 			errors.push(
-				'The source  of the src.less:dst.css pair ' +
-					'does not seem to exist.',
+				'The source file of the src.less:dst.css pair ' + o.id +
+					' does not seem to exist.',
 				'Path: ' + o.src
 			);
 			valid = false;
 		}
 
-		o.dst = this.real_path(path.resolve(o.dst));
-		if (! o.dst){
+		var dir = path.dirname(o.dst);
+		dir = this.real_path(path.resolve(dir));
+
+		if (! dir){
 			errors.push(
-				'The destination of the src.less:dst.css pair ' +
-					'does not seem to exist.',
+				'The destination directory of the src.less:dst.css pair ' + o.id +
+					' does not seem to exist.',
 				'Path: ' + o.dst
+
 			);
 			valid = false;
+		} else {
+			o.dst = path.join(dir, path.basename(o.dst));
 		}
 		pairs[id] = o;
 
