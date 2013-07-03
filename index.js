@@ -13,6 +13,7 @@ var
 
 
 function Piglet(){
+	this.is_compiling = false;
 	var cmds = this.read_constant('cmds');
 	var c = process.argv[2];
 	if (c && cmds[c]) {
@@ -67,7 +68,7 @@ function Piglet(){
 		this.cmd(c, args);
 
 	} else {
-		console.log('Command not found!');
+		this.cmd('help', {});
 	}
 }
 
@@ -100,10 +101,38 @@ Piglet.prototype.cmd = function(c, args){
 		case 'watch':
 			this.cmd_watch(args);
 			break;
+		case 'help':
+			this.cmd_help(args);
+			break;
 	}
 };
 
+Piglet.prototype.cmd_help = function(args){
+	var cmds = this.read_constant('cmds');
+	var m = _.max(_.keys(cmds), function(key){ return key.length; }).length + 2;
+	var tab = '';
+	while(tab.length <= m) tab += ' ';
+	console.log('')
+	_.each(cmds, function(val, key){
+		while(key.length < m) key += ' ';
+		console.log(key, val.describe);
 
+		console.log(tab + val.usage);
+
+		if (_.size(val.options) > 0){
+
+			console.log(tab + 'Options:');
+			_.each(val.options, function(val, key){
+				console.log(tab + '-' + key + ' --' + val.alias + '  ' + val.describe);
+			});
+		}
+		console.log('')
+
+	}, this);
+
+	console.log('');
+
+};
 
 Piglet.prototype.cmd_add = function(args){
 	var errors = [];
@@ -137,6 +166,23 @@ Piglet.prototype.cmd_watch = function(args){
 		process.exit();
 	}
 	var project = this.read_project(args.id);
+	if (! this.validate_project(project, errors, false)){
+		this.squeal(errors);
+		process.exit();
+	}
+
+	var that = this;
+	var on_change = function(curr, prev){
+		console.log(curr, prev);
+		that.cmd_compile({id: project.id});
+	};
+	var p = path.join(project.less_path, 'variables.less');
+	fs.watchFile(p, { persistent: true }, on_change);
+	_.each(project.pairs, function(val){
+		fs.watchFile(val.src, { persistent: true }, on_change);
+	});
+
+	this.say('Piglet is watching ' + project.id);
 };
 
 
@@ -379,14 +425,20 @@ Piglet.prototype.cmd_show = function(args){
 
 };
 Piglet.prototype.cmd_compile = function(args){
+	this.is_compiling = true;
 	var errors = [];
 	if (! this.validate_id(args.id, errors, false)){
 		this.squeal(errors);
+		this.is_compiling = false;
 		process.exit();
 	}
 	var project = this.read_project(args.id);
+	console.log('')
+	console.log('Project ' + project.id + ' is being compiled.');
+
 	if (! this.validate_project(project, errors, false)){
 		this.squeal(errors);
+		this.is_compiling = false;
 		process.exit();
 	}
 
@@ -471,7 +523,7 @@ Piglet.prototype.cmd_compile = function(args){
 	);
 
 	_.each(project.pairs, function(o, key){
-		var min = path.join(path.dirname(o.src), path.basename(o.dst, '.css') + '.min.css');
+		var min = path.join(path.dirname(o.dst), path.basename(o.dst, '.css') + '.min.css');
 		queue.push(
 			recess +
 				' --compile ' +
@@ -491,9 +543,12 @@ Piglet.prototype.cmd_compile = function(args){
 	this.exec_queue(queue, function(){
 		project.compiled_at = new Date();
 		that.write_project(project);
-		that.say(
+		console.log(
+
 			'Project ' + project.id + ' compiled.'
 		);
+		console.log('');
+		that.is_compiling = false;
 	}, false);
 
 

@@ -58,7 +58,7 @@
 	, "show":{
 		"usage": "Usage: piglet show <id>"
 		, "demand": 1
-		, "describe": "show properties and validate a Piglet project."
+		, "describe": "Show properties and validate a Piglet project."
 		, "options":{}
 	}
 	, "oink":{
@@ -66,6 +66,11 @@
 		, "describe": "Oink."
 		, "options":{}
 	}
+	, "help":{
+	"usage": "Usage: piglet help"
+	, "describe": "Show this help."
+	, "options":{}
+}
 
 
 }
