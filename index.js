@@ -536,13 +536,16 @@ Piglet.prototype.cmd_compile = function(args){
 	);
 
 	_.each(project.pairs, function(o, key){
-		var min = path.join(path.dirname(o.dst), path.basename(o.dst, '.css') + '.min.css');
+		var d = path.dirname(o.dst);
+		var bn = path.basename(o.src, '.less');
+		var max = path.join(d,  + bn +  '.css')
+		var min = path.join(d,  + bn + '.min.css');
 		queue.push(
 			recess +
 				' --compile ' +
 				o.src +
 				' > ' +
-				o.dst
+				max
 
 			,recess +
 				' --compress '  +
@@ -937,6 +940,9 @@ Piglet.prototype.exec_queue = function(queue, callback, verbose){
 			}
 
 			if (error !== null) {
+				console.log('exec: ' + cmd);
+				console.log('stdout: ' + stdout);
+				console.log('stderr: ' + stderr);
 				console.log('exec error: ' + error);
 			}
 			that.exec_queue(queue, callback, verbose);
