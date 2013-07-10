@@ -536,10 +536,10 @@ Piglet.prototype.cmd_compile = function(args){
 	);
 
 	_.each(project.pairs, function(o, key){
-		var d = path.dirname(o.dst);
+		var d = (o.dst);
 		var bn = path.basename(o.src, '.less');
-		var max = path.join(d,  + bn +  '.css')
-		var min = path.join(d,  + bn + '.min.css');
+		var max = path.join(d,   bn +  '.css')
+		var min = path.join(d,   bn  + '.min.css');
 		queue.push(
 			recess +
 				' --compile ' +
@@ -565,7 +565,7 @@ Piglet.prototype.cmd_compile = function(args){
 		);
 		console.log('');
 		that.is_compiling = false;
-	}, false);
+	}, true);
 
 
 };
