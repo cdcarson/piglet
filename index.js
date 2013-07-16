@@ -542,13 +542,13 @@ Piglet.prototype.cmd_compile = function(args){
 		var min = path.join(d,   bn  + '.min.css');
 		queue.push(
 			recess +
-				' --compile ' +
+				' --compile --includePath ' + include_path + ' '  +
 				o.src +
 				' > ' +
 				max
 
 			,recess +
-				' --compress '  +
+				' --compress --includePath ' + include_path + ' '  +
 				o.src  +
 				' > ' +
 				min
@@ -565,7 +565,7 @@ Piglet.prototype.cmd_compile = function(args){
 		);
 		console.log('');
 		that.is_compiling = false;
-	}, true);
+	}, false);
 
 
 };
