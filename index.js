@@ -7,6 +7,9 @@
 
 function Piglet(){
 	var help = fs.readFileSync(path.join(__dirname, 'assets' , 'help.txt'), {encoding: 'utf8'});
+	this.art =  fs.readFileSync(path.join(__dirname, 'assets' , 'piglet.ascii'), {encoding: 'utf8'});
+	this.error_art =  fs.readFileSync(path.join(__dirname, 'assets' , 'error.ascii'), {encoding: 'utf8'});
+
 	this.opt = require('optimist')
 		.usage(help)
 		.boolean('r')
@@ -21,7 +24,6 @@ function Piglet(){
 		]);
 	}
 
-	this.art =  fs.readFileSync(path.join(__dirname, 'assets' , 'piglet.ascii'), {encoding: 'utf8'});
 	this.start = null;
 	this.paths = _.object(['watch', 'source', 'target'], args);
 	if (! this.dirExists(this.paths.watch)){
@@ -116,9 +118,8 @@ Piglet.prototype.isWatching = function(){
 };
 Piglet.prototype.watchCallback = function (error, stdout, stderr) {
 	if (error !== null) {
-		console.log('stdout: ' + stdout);
-		console.log('stderr: ' + stderr);
-		console.log('exec error: ' + error);
+		console.log (this.error_art);
+		console.log(error.message);
 	} else {
 		var d = new Date();
 		var elapsed = (d.getTime() - this.start.getTime())/1000;
@@ -142,6 +143,7 @@ Piglet.prototype.fileExists = function(p){
 	return false;
 };
 Piglet.prototype.error_exit = function(errors){
+	console.log (this.error_art);
 	_.each(errors, function(e){
 		console.log(e);
 	});
