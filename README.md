@@ -1,9 +1,3 @@
-```
-@___,__
-(   ^'_] Piglet is watching.
-//-\\'
-^^  ^^   ^C to stop him.
-```
 piglet
 ======
 
@@ -53,29 +47,7 @@ Command failed: FileError: 'missing.less' wasn't found in /Users/me/my/less/styl
 
 ..and continue watching.
 
-## Command Line Usage
-
-```
-Usage: piglet [options] <watch> <source> <target>
-
-    Required Arguments:
-
-    watch: The directory path to watch. Changes to .less
-           files in this directory will trigger compilation.
-
-    source: The single source .less file to compile.
-
-    target: The directory path or file path to which piglet
-            will compile.
-
-    Options:
-
-    -r --recess: Use recess instead of lessc to compile.
-                 Much slower.
-```
-	
-	
-## Optionally, add piglet to .bash_profile
+### Optionally, add piglet to .bash_profile
 
 If you want to command piglet from any directory add it to your .bash_profile
 
@@ -99,6 +71,32 @@ This will allow you to do this:
     Compile: /Users/me/my/fabulously/long/path/wordpress/wp-content/themes/blue/assets/less/styles.less
     Target: /Users/me/my/fabulously/long/path/wordpress/wp-content/themes/blue/assets/css/styles.less
     Compiler:   lessc
+
+## Command Line Usage
+
+```
+Usage: piglet [options] <watch> <source> <target>
+
+    Required Arguments:
+
+    watch: The directory path to watch. Changes to .less
+           files in this directory will trigger compilation.
+
+    source: The single source .less file to compile.
+
+    target: The directory path or file path to which piglet
+            will compile.
+
+    Options:
+
+    -r --recess: Use recess instead of lessc to compile.
+                 Much slower.
+```
+	
+	
+### Specifying recess
+
+You can optionally use recess instead of less as the compiler instead of lessc by using option `-r` or `--recess`. Recess is much slower than lessc, but it might be a better option for going into production, since it's by the Bootstrap guys and performs validation.
 
 ## Using piglet with Twitter Bootstrap
 
@@ -158,14 +156,18 @@ piglet less less/style.less css
 ```
 This compiles Bootstrap and our custom styles into one minified css, `css/styles.min.css`, that we can include in the header.
 
+## To Do's
+
+* Allow piglet to pass options into lessc and recess.
+
 
 ## Credits
 
-Inspired by work done on Bootstrap by [@rno and @fat](https://github.com/twitter/bootstrap#authors).
 
-Piglet makes use of [optimist](https://github.com/substack/node-optimist).
-
-ASCII piglet art courtesy of [Joan G Stark](http://www.geocities.com/SoHo/7373/index.htm) | [Wikipedia](https://en.wikipedia.org/wiki/Joan_Stark)
+* Piglet is written in [node](http://nodejs.org/).
+* Inspired by work done on Bootstrap by [@rno and @fat](https://github.com/twitter/bootstrap#authors).
+* Piglet makes use of [optimist](https://github.com/substack/node-optimist), [recess](http://git.io/recess), [lessc](http://lesscss.org/), and [underscore](http://underscorejs.org/).
+* ASCII piglet art courtesy of [Joan G Stark](http://www.geocities.com/SoHo/7373/index.htm) | [Wikipedia](https://en.wikipedia.org/wiki/Joan_Stark)
 
 ```
       __,___@
@@ -177,5 +179,12 @@ jgs  (   ^'_]
      //-\\'
      ^^  ^^
 ```
+
+LICENSE
+------------
+
+Copyright 2013 [Modern Media](http://modernmedia.co).
+
+Licensed under the Apache License, Version 2.0: <http://www.apache.org/licenses/LICENSE-2.0>
 
 

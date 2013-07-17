@@ -1,4 +1,11 @@
-#!/usr/bin/env node
+// ==========================================
+// piglet
+// CORE: The core class definition
+// ==========================================
+// Copyright 2013 Modern Media, Inc
+// Licensed under the Apache License v2.0
+// http://www.apache.org/licenses/LICENSE-2.0
+// ==========================================
  var
 	 path = require('path')
 	 ,fs = require('fs')
@@ -6,17 +13,30 @@
 	 ,_ = require('underscore');
 
 function Piglet(){
-	var help = fs.readFileSync(path.join(__dirname, 'assets' , 'help.txt'), {encoding: 'utf8'});
+	this.help = fs.readFileSync(path.join(__dirname, 'assets' , 'help.txt'), {encoding: 'utf8'});
 	this.art =  fs.readFileSync(path.join(__dirname, 'assets' , 'piglet.ascii'), {encoding: 'utf8'});
 	this.error_art =  fs.readFileSync(path.join(__dirname, 'assets' , 'error.ascii'), {encoding: 'utf8'});
 
 	this.opt = require('optimist')
-		.usage(help)
+
+		.boolean('h')
+		.alias('h', 'help')
+		.default('h', false)
+
 		.boolean('r')
 		.alias('r', 'recess')
-		.default('r', false);
+		.default('r', false)
+	;
+
+
 	this.argv = this.opt.parse(process.argv);
 	var args = this.argv._.slice(2);
+
+	if (this.argv.help){
+		console.log(this.help);
+		process.exit();
+	}
+
 
 	if (args.length < 3){
 		this.error_exit([
@@ -147,7 +167,7 @@ Piglet.prototype.error_exit = function(errors){
 	_.each(errors, function(e){
 		console.log(e);
 	});
-	this.opt.showHelp();
+	console.log(this.help);
 	process.exit(1);
 };
 
