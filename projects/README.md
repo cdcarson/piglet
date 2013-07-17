@@ -1,1 +1,0 @@
-This is the directory where your projects reside. They are .gitignore'd

@@ -37,11 +37,3 @@ node_modules
 dist
 
 # Piglet
-/projects/*.json
-/example/assets/less/bootstrap.less
-/example/assets/less/responsive.less
-/example/assets/less/variables.less
-/example/assets/less/style.less
-/example/assets/bootstrap/
-/example/assets/css/style.css
-/example/assets/css/style.min.css
