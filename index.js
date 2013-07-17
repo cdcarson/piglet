@@ -6,12 +6,22 @@
 	 ,_ = require('underscore');
 
 function Piglet(){
-	var args = require('optimist')
-		.usage('Usage: $0 <watch> <source> <target>')
-		.demand(3)
-		.argv
-		._;
-	this.art =  fs.readFileSync('./assets/piglet.ascii', {encoding: 'utf8'});
+	var help = fs.readFileSync(path.join(__dirname, 'assets' , 'help.txt'), {encoding: 'utf8'});
+	this.opt = require('optimist')
+		.usage(help)
+		.boolean('r')
+		.alias('r', 'recess')
+		.default('r', false);
+	this.argv = this.opt.parse(process.argv);
+	var args = this.argv._.slice(2);
+
+	if (args.length < 3){
+		this.error_exit([
+			'Too few arguments.'
+		]);
+	}
+
+	this.art =  fs.readFileSync(path.join(__dirname, 'assets' , 'piglet.ascii'), {encoding: 'utf8'});
 	this.start = null;
 	this.paths = _.object(['watch', 'source', 'target'], args);
 	if (! this.dirExists(this.paths.watch)){
@@ -74,7 +84,12 @@ function Piglet(){
 			if ('.less' != path.extname(filename)) return;
 			that.start = new Date();
 			console.log ('Compiling...');
-			var cmd = 'lessc --verbose --yui-compress ' +
+
+			var c = that.argv.recess ? 'recess --compress ' : 'lessc --verbose --yui-compress ';
+			c = path.join (__dirname, 'node_modules', '.bin', c);
+
+
+			var cmd = c +
 				that.paths.source +
 				' > ' +
 				that.paths.target;
@@ -93,9 +108,10 @@ function Piglet(){
 Piglet.prototype.isWatching = function(){
 	console.log('');
 	console.log(this.art);
-	console.log('Watch:   ' + this.paths.watch);
-	console.log('Compile: ' + this.paths.source);
-	console.log('Target:  ' + this.paths.target);
+	console.log('Watch:     ' + this.paths.watch);
+	console.log('Compile:   ' + this.paths.source);
+	console.log('Target:    ' + this.paths.target);
+	console.log('Compiler:  ' ,  this.argv.recess ? 'recess' : 'lessc');
 	console.log('')
 };
 Piglet.prototype.watchCallback = function (error, stdout, stderr) {
@@ -129,6 +145,7 @@ Piglet.prototype.error_exit = function(errors){
 	_.each(errors, function(e){
 		console.log(e);
 	});
+	this.opt.showHelp();
 	process.exit(1);
 };
 

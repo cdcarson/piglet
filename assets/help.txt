@@ -1,0 +1,17 @@
+
+Usage: piglet [options] <watch> <source> <target>
+
+    Required Arguments:
+
+    watch: The directory path to watch. Changes to .less
+           files in this directory will trigger compilation.
+
+    source: The single source .less file to compile.
+
+    target: The directory path or file path to which piglet
+            will compile.
+
+    Options:
+
+    -r --recess: Use recess instead of lessc to compile.
+                 Much slower.
