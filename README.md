@@ -156,7 +156,7 @@ piglet less less/style.less css
 ```
 This compiles Bootstrap and our custom styles into one minified css, `css/styles.min.css`, that we can include in the header.
 
-## To Do's
+## To Do
 
 * Allow piglet to pass options into lessc and recess.
 
@@ -165,7 +165,7 @@ This compiles Bootstrap and our custom styles into one minified css, `css/styles
 
 
 * Piglet is written in [node](http://nodejs.org/).
-* Inspired by work done on Bootstrap by [@rno and @fat](https://github.com/twitter/bootstrap#authors).
+* Inspired by work done on Bootstrap by [@mdo and @fat](https://github.com/twitter/bootstrap#authors).
 * Piglet makes use of [optimist](https://github.com/substack/node-optimist), [recess](http://git.io/recess), [lessc](http://lesscss.org/), and [underscore](http://underscorejs.org/).
 * ASCII piglet art courtesy of [Joan G Stark](http://www.geocities.com/SoHo/7373/index.htm) | [Wikipedia](https://en.wikipedia.org/wiki/Joan_Stark)
 
