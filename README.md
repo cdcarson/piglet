@@ -1,7 +1,7 @@
 piglet
 ======
 
-Piglet is a watcher for less projects. It was inspired by Twitter Bootstrap's Makefile, and me getting tired of having to go to the command line every time I made a change to a less file.
+Piglet is a watcher for LESS projects. It was inspired by Twitter Bootstrap's Makefile, and me getting tired of having to go to the command line every time I made a change to a .less file.
 
 ## Quick start
 
